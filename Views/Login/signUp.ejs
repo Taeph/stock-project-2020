@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>종목토론방</title>
+        <meta charset="utf-8" />
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <style>
+            span { 
+                display: inline-block;
+                padding: 10px;
+                width: 90px; 
+            }
+        </style>
+    </head>
+    <body>
+        <h1>회원가입</h1>
+        <div>
+            <span>아이디</span><input id='id-input' type='text'>
+            <button id='check-Btn' onclick="checkId()">중복확인</button>
+            <br>
+            <span>비밀번호</span><input id='pw-input' type='password' onchange="checkPw()">
+            <br>
+            <span>확인</span><input id='pw-check-input' type='password' onchange="checkPw()">
+            <br>
+            <span id='pw-check-text' style='width:400px;'></span>
+            <br>
+            <span>이름</span><input id='name-input' type='text'>
+            <br>
+            <span>생년원일</span>
+            <select id='birth-year'></select>
+            <select id='birth-month'></select>
+            <select id='birth-day'></select>
+            <br>
+            <span>성별</span>
+            <select id='gender-select'>
+                <option value='M'>남자</option>
+                <option value='W'>여자</option>
+            </select>
+            <br>
+            <span>핸드폰번호</span><input id='phone-input' type='text'>
+            <br>
+            <button id='ok-Btn' onclick="signUp()">확인</button>
+            <button id='findId-Btn' onclick="location.href='/findId'">아이디찾기</button>
+            <button id='findPw-Btn' onclick="location.href='/findPw'">비밀번호찾기</button>
+        </div>            
+    </body>
+</html>
+
+<script>
+
+    // 화면이 로드되면서 셀렉트박스 설정
+    window.onload = selectBoxSet();
+
+    let idCheckFlag = false;
+    let pwCheckFlag = false;
+    let infoCheckFlag = false;
+
+    // 아이디 중복 확인
+    function checkId() {
+        const id = $('#id-input').val();
+        if(id == '') {
+            alert('아이디를 입력하세요');
+        } else {
+            console.log(id);
+            $.ajax({
+                url: '/requset-sign-up-check-id',
+                type: 'POST',
+                data: {
+                    id: id,
+                },
+                success: function(data) {
+                    console.log(data);
+                    if(data == false) {
+                        alert('사용 가능한 아이디 입니다');
+                        idCheckFlag = true;
+                    } else {
+                        alert('중복된 아이디 입니다');
+                        idCheckFlag = false;
+                    }
+                }
+            });
+        }
+    }
+
+    // 비밀번호 확인
+    function checkPw() {
+        const pwCheckText = document.getElementById('pw-check-text');
+        const pwInput = $('#pw-input').val();
+        const pwCheckInput = $('#pw-check-input').val();
+        if(pwInput == pwCheckInput) {
+            pwCheckText.innerHTML = '비밀번호 확인 완료';
+            pwCheckFlag = true;
+        } else {
+            pwCheckText.innerHTML = '비밀번호를 확인 해주세요';
+            pwCheckFlag = false;
+        }
+    }
+
+    // 회원가입 진행
+    function signUp() {
+        const userId = $('#id-input').val();
+        const userPw = $('#pw-input').val();
+        const userName = $('#name-input').val();
+        const userPhone = $('#phone-input').val();
+        const userGender = $('#gender-select option:selected').val();
+        const userBirth = $('#birth-year option:selected').val() + $('#birth-month option:selected').val() + $('#birth-day option:selected').val();
+
+        if(idCheckFlag == false) {
+            alert('아이디 중복 확인을 해주세요');
+        }
+
+        if(pwCheckFlag == false) {
+            alert('비밀번호 확인을 해주세요');
+        }
+
+        infoCheckFlag = checkInfo();
+
+        if(idCheckFlag && pwCheckFlag && infoCheckFlag) {
+            console.log('회원가입 프로세스 진행');
+            console.log(userId, userPw, userName, userBirth, userGender, userPhone);
+            $.ajax({
+                url: '/request-sign-up-insert-db',
+                type: 'POST',
+                data: {
+                    id: userId,
+                    pw: userPw,
+                    name: userName,
+                    birth: userBirth,
+                    gender: userGender,
+                    phone: userPhone,
+                },
+                success: function(data) {
+                    console.log(data);
+                    if(data == true) {
+                        alert('회원가입이 완료되었습니다');
+                        location.href = '/';
+                    }
+                }
+            });
+        }
+    }
+
+    // 이름, 핸드폰번호 확인
+    function checkInfo() {
+        const name = $('#name-input').val();
+        const phone = $('#phone-input').val();
+        let checkEmpthFlag = false;
+
+        if(name == '') {
+            alert('이름을 입력 해주세요');
+        }
+
+        if(phone == '') {
+            alert('핸드폰 번호를 입력 해주세요');
+        }
+
+        if((name != '') && (phone != '')) {
+            checkEmpthFlag = true;
+        } else {
+            checkEmpthFlag = false;
+        }
+
+        return checkEmpthFlag;
+    }
+
+    // 셀렉트박스 설정
+    function selectBoxSet() {
+        setYear();
+        setMonth();
+        setDay();
+    }
+
+    // 셀렉트박스 년 설정
+    function setYear() {
+        const year = document.getElementById('birth-year');
+        const date = new Date();
+        let nowYear = date.getFullYear();
+
+        for(i=20; i<60; i++) {
+            const option = document.createElement('option');
+            option.value = nowYear - i;
+            option.innerHTML = nowYear - i;
+            year.appendChild(option);
+        }
+    }
+    
+    // 셀렉트박스 월 설정
+    function setMonth() {
+        const month = document.getElementById('birth-month');
+        for(i=1; i<13; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.innerHTML = i;
+            month.appendChild(option);
+        }
+    }
+
+    // 셀렉트박스 일 설정 - 선택한 월에 따라서 나오는 일이 달라져야함(미구현)
+    function setDay() {
+        const day = document.getElementById('birth-day');
+        for(i=1; i<32; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.innerHTML = i;
+            day.appendChild(option);
+        }
+    }
+
+</script>
