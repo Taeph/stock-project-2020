@@ -1,1 +1,54 @@
-<h1>비밀번호찾기</h1>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>종목토론방</title>
+        <meta charset="utf-8" />
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <style>
+            span { 
+                display: inline-block;
+                padding: 10px;
+                width: 90px; 
+            }
+        </style>
+    </head>
+    <body>
+        <h1>비밀번호찾기</h1>
+        <div>
+            <span>아이디</span><input id='id-input' type='text'>
+            <br>
+            <span>이름</span><input id='name-input' type='text'>
+            <br>
+            <span>핸드폰번호</span><input id='phone-input' type='text'>
+            <br>
+            <button id='ok-Btn' onclick="getUserPw()">확인</button>
+            <button id='signIn-Btn' onclick="location.href='/'">로그인화면</button>
+            <button id='findId-Btn' onclick="location.href='/findId'">아이디찾기</button>
+        </div>            
+    </body>
+</html>
+
+<script>
+    function getUserPw() {
+        const id = $('#id-input').val();
+        const name = $('#name-input').val();
+        const phone = $('#phone-input').val();
+        $.ajax({
+            url: '/request-find-user-pw',
+            type: 'POST',
+            data: {
+                id: id,
+                name: name,
+                phone: phone,
+            },
+            success: function(data) {
+                if(data == '') {
+                    alert('정보를 확인해 주세요');
+                } else {
+                    const result = JSON.parse(data);
+                    alert(`비밀번호는 ${result.pw} 입니다`);
+                }
+            }
+        })
+    }
+</script>

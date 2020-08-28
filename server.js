@@ -27,43 +27,44 @@ function serverLog(str) {
     console.log(`[SERVER] ${str}`);
 }
 
-// index page
+// 초기화면(로그인 화면)
 app.get('/', function( req, res ) {
     res.render('index');
 })
 
-// signUp page
+// 회원가입 화면
 app.get('/signUp', function( req, res ) {
     res.render('Login/signUp');
 })
 
-// findId page
+// 아이디 찾기 화면
 app.get('/findId', function( req, res ) {
     res.render('Login/findId');
 })
 
-// findPw page
+// 비밀번호 찾기 화면
 app.get('/findPw', function( req, res ) {
     res.render('Login/findPw');
 })
 
-// findPw page
+// 홈 화면(로그인 이후 화면)
 app.get('/home', function( req, res ) {
     res.render('home');
 })
 
 
-
 // server OK
 app.listen('3000', function(req, res) {
-    console.log('[SERVER] "stock-discussion-room" listening at http://localhost:3000');
+    serverLog('listening at http://localhost:3000');
 })
 
-// sign-in check
+
+
+// 로그인 화면 (로그인 정보 일치여부)
 app.post('/request-sign-in-check', async function(req, res) {
     const id = req.body.id;
     const pw = req.body.pw;
-    const flag = await InsertUserInfo(id, pw);
+    const flag = await confirmSignIn(id, pw);
 
     /*
         res.send() 를 사용해서는 정수를 보낼 수 없다.
@@ -72,8 +73,8 @@ app.post('/request-sign-in-check', async function(req, res) {
     res.send(flag);
 })
 
-// insert data in user_info_tb
-function InsertUserInfo(id, pw) {
+// 로그인 화면 (로그인 정보 비교 함수)
+function confirmSignIn(id, pw) {
     return new Promise( (resolve, reject) => {
         let signInFlag;
         connection.query('SELECT count(*) AS cnt FROM user_info_tb WHERE id = ?', [id], function(error, results, fields) {
@@ -81,7 +82,7 @@ function InsertUserInfo(id, pw) {
                 reject(error);
             } else {
                 if(results[0].cnt == 0) {
-                    console.log('등록되지 않은 아이디 입니다');
+                    serverLog('등록되지 않은 아이디 입니다');
                     resolve('CODE1');
                 } else {
                     connection.query('SELECT count(*) AS cnt FROM user_info_tb WHERE id = ? AND pw = ?', [id, pw], function(error, results, fields) {
@@ -89,10 +90,10 @@ function InsertUserInfo(id, pw) {
                             reject(error);
                         } else {
                             if(results[0].cnt == 0) {
-                                console.log('비밀번호가 틀립니다');
+                                serverLog('비밀번호가 틀립니다');
                                 resolve('CODE2');
                             } else {
-                                console.log('로그인 성공');
+                                serverLog('로그인 성공');
                                 resolve('CODE3');
                             }
                         }
@@ -103,8 +104,7 @@ function InsertUserInfo(id, pw) {
     })
 }
 
-
-// sign-up id check
+// 회원가입 화면 (아이디 중복 검사)
 app.post('/requset-sign-up-check-id', function(req, res) {
     const id = req.body.id;
     console.log(id);
@@ -123,7 +123,7 @@ app.post('/requset-sign-up-check-id', function(req, res) {
     });    
 })
 
-// sign-up insert user info
+// 회원가입 화면 (테이블에 데이터 삽입)
 app.post('/request-sign-up-insert-db', function(req, res) {
     
     console.log(req.body);
@@ -148,8 +148,45 @@ app.post('/request-sign-up-insert-db', function(req, res) {
         if(error) {
             throw error;
         } else {
-            console.log(results);
+            serverLog('유저정보 INSERT');
             res.send(true);
         }
     });    
+})
+
+// 아이디 찾는 화면 (아이디 찾기)
+app.post('/request-find-user-id', function(req, res) {
+    const name = req.body.name;
+    const phone = req.body.phone;
+    connection.query('SELECT id FROM user_info_tb WHERE name = ? AND phone = ?', [name, phone], function(error, results, fields) {
+        if(error) {
+            throw error;
+        } else {
+            if(results[0] == undefined) {
+                serverLog(`아이디 찾기 실패`);
+            } else {
+                serverLog(`아이디 찾기 완료 - ${results[0].id}`);
+            }
+            res.send(JSON.stringify(results[0]));
+        }
+    });
+})
+
+// 비밀번호 찾는 화면 (비밀번호 찾기)
+app.post('/request-find-user-pw', function(req, res) {
+    const id = req.body.id;
+    const name = req.body.name;
+    const phone = req.body.phone;
+    connection.query('SELECT pw FROM user_info_tb WHERE id = ? AND name = ? AND phone = ?', [id, name, phone], function(error, results, fields) {
+        if(error) {
+            throw error;
+        } else {
+            if(results[0] == undefined) {
+                serverLog(`비밀번호 찾기 실패`);
+            } else {
+                serverLog(`비밀번호 찾기 완료 - ${results[0].id}`);
+            }
+            res.send(JSON.stringify(results[0]));
+        }
+    });
 })
