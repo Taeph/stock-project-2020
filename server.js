@@ -108,12 +108,12 @@ function confirmSignIn(id, pw) {
 app.post('/requset-sign-up-check-id', function(req, res) {
     const id = req.body.id;
     console.log(id);
-    connection.query('SELECT count(*) FROM user_info_tb WHERE id = ?', [id], function(error, results, fields) {
+    connection.query('SELECT count(*) AS cnt FROM user_info_tb WHERE id = ?', [id], function(error, results, fields) {
         if(error) {
             throw error;
         } else {
             let check;
-            if(results.length == 0) {
+            if(results[0].cnt == 0) {
                 check = true;
             } else {
                 check = false;

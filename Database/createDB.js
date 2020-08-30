@@ -47,6 +47,7 @@ async function createCommentTable() {
                 contents VARCHAR(200) character set utf8 not null,
                 like_cnt int(5) default '0',
                 unlike_cnt int(5) default '0',
+                view_cnt int(5) default '0',
                 prediction VARCHAR(2) character set utf8 not null
             )`,
             function(error, result, fields) {

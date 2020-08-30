@@ -39,6 +39,7 @@
             <span>핸드폰번호</span><input id='phone-input' type='text'>
             <br>
             <button id='ok-Btn' onclick="signUp()">확인</button>
+            <button id='home-Btn' onclick="location.href='/'">로그인화면</button>
             <button id='findId-Btn' onclick="location.href='/findId'">아이디찾기</button>
             <button id='findPw-Btn' onclick="location.href='/findPw'">비밀번호찾기</button>
         </div>            
@@ -60,7 +61,7 @@
         if(id == '') {
             alert('아이디를 입력하세요');
         } else {
-            console.log(id);
+            // console.log(id);
             $.ajax({
                 url: '/requset-sign-up-check-id',
                 type: 'POST',
@@ -69,7 +70,7 @@
                 },
                 success: function(data) {
                     console.log(data);
-                    if(data == false) {
+                    if(data == true) {
                         alert('사용 가능한 아이디 입니다');
                         idCheckFlag = true;
                     } else {
@@ -97,12 +98,16 @@
 
     // 회원가입 진행
     function signUp() {
+        let year = $('#birth-year option:selected').val();
+        let month = $('#birth-month option:selected').val();
+        let day = $('#birth-day option:selected').val();
+
         const userId = $('#id-input').val();
         const userPw = $('#pw-input').val();
         const userName = $('#name-input').val();
         const userPhone = $('#phone-input').val();
         const userGender = $('#gender-select option:selected').val();
-        const userBirth = $('#birth-year option:selected').val() + $('#birth-month option:selected').val() + $('#birth-day option:selected').val();
+        const userBirth = year + (month < 10 ? '0' + month : month) + (day < 10 ? '0' + day : day);
 
         if(idCheckFlag == false) {
             alert('아이디 중복 확인을 해주세요');
